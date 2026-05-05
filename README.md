@@ -1,5 +1,8 @@
 # pi-otel
 
+[![CI](https://github.com/maxmalkin/pi-OTEL/actions/workflows/ci.yml/badge.svg)](https://github.com/maxmalkin/pi-OTEL/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 OpenTelemetry harness for the [pi coding agent](https://pi.dev). Emits
 GenAI-semconv spans for LLM and tool calls over OTLP/HTTP to any compatible
 backend.
