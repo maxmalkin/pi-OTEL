@@ -1,0 +1,38 @@
+{
+  "name": "pi-otel",
+  "version": "0.1.0",
+  "description": "OpenTelemetry harness for the pi coding agent. Emits GenAI-semconv spans for LLM and tool calls to any OTLP/HTTP backend (SigNoz, Jaeger, Tempo, Honeycomb, Phoenix, …).",
+  "license": "MIT",
+  "type": "module",
+  "private": false,
+  "keywords": [
+    "pi",
+    "pi-coding-agent",
+    "opentelemetry",
+    "otel",
+    "otlp",
+    "llm-observability",
+    "gen-ai",
+    "signoz",
+    "jaeger",
+    "tempo",
+    "honeycomb",
+    "phoenix"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "@opentelemetry/sdk-trace-node": "^1.30.0",
+    "@opentelemetry/semantic-conventions": "^1.28.0"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": ">=0.70.0"
+  }
+}
