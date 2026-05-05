@@ -1,0 +1,239 @@
+{
+  "title": "pi-otel — Overview",
+  "description": "LLM and tool activity for the pi coding agent. Imports against the default `pi` service emitted by pi-otel.",
+  "tags": ["pi", "llm", "gen_ai"],
+  "variables": {
+    "service": {
+      "name": "service",
+      "type": "QUERY",
+      "queryValue": "SELECT DISTINCT serviceName FROM signoz_traces.distributed_signoz_index_v3 WHERE serviceName IS NOT NULL ORDER BY serviceName",
+      "multiSelect": false,
+      "showALLOption": false,
+      "sort": "ASC",
+      "textboxValue": "",
+      "defaultValue": "pi",
+      "description": "Service name (defaults to pi)"
+    }
+  },
+  "layout": [
+    { "i": "llm-rate",     "x": 0, "y": 0, "w": 6, "h": 3 },
+    { "i": "llm-latency",  "x": 6, "y": 0, "w": 6, "h": 3 },
+    { "i": "tokens-in",    "x": 0, "y": 3, "w": 6, "h": 3 },
+    { "i": "tokens-out",   "x": 6, "y": 3, "w": 6, "h": 3 },
+    { "i": "cost-by-model","x": 0, "y": 6, "w": 6, "h": 4 },
+    { "i": "tool-rate",    "x": 6, "y": 6, "w": 6, "h": 4 },
+    { "i": "recent-turns", "x": 0, "y": 10,"w": 12,"h": 5 }
+  ],
+  "widgets": [
+    {
+      "id": "llm-rate",
+      "title": "LLM calls / min",
+      "description": "Rate of gen_ai.chat spans grouped by model.",
+      "panelTypes": "graph",
+      "yAxisUnit": "short",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "queryName": "A",
+              "dataSource": "traces",
+              "aggregateOperator": "rate",
+              "aggregateAttribute": { "key": "name", "type": "tag", "dataType": "string" },
+              "filters": {
+                "op": "AND",
+                "items": [
+                  { "key": { "key": "serviceName", "type": "tag", "dataType": "string" }, "op": "=", "value": "{{.service}}" },
+                  { "key": { "key": "name", "type": "tag", "dataType": "string" }, "op": "contains", "value": "gen_ai.chat" }
+                ]
+              },
+              "groupBy": [{ "key": "gen_ai.request.model", "type": "tag", "dataType": "string" }],
+              "expression": "A",
+              "stepInterval": 60,
+              "legend": "{{gen_ai.request.model}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "llm-latency",
+      "title": "LLM p95 latency",
+      "description": "p95 wall-clock duration of gen_ai.chat spans by model.",
+      "panelTypes": "graph",
+      "yAxisUnit": "ns",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "queryName": "A",
+              "dataSource": "traces",
+              "aggregateOperator": "p95",
+              "aggregateAttribute": { "key": "durationNano", "type": "tag", "dataType": "float64" },
+              "filters": {
+                "op": "AND",
+                "items": [
+                  { "key": { "key": "serviceName", "type": "tag", "dataType": "string" }, "op": "=", "value": "{{.service}}" },
+                  { "key": { "key": "name", "type": "tag", "dataType": "string" }, "op": "contains", "value": "gen_ai.chat" }
+                ]
+              },
+              "groupBy": [{ "key": "gen_ai.request.model", "type": "tag", "dataType": "string" }],
+              "expression": "A",
+              "stepInterval": 60,
+              "legend": "{{gen_ai.request.model}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tokens-in",
+      "title": "Input tokens / min",
+      "panelTypes": "graph",
+      "yAxisUnit": "short",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "queryName": "A",
+              "dataSource": "traces",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": { "key": "gen_ai.usage.input_tokens", "type": "tag", "dataType": "int64" },
+              "filters": {
+                "op": "AND",
+                "items": [
+                  { "key": { "key": "serviceName", "type": "tag", "dataType": "string" }, "op": "=", "value": "{{.service}}" }
+                ]
+              },
+              "groupBy": [{ "key": "gen_ai.request.model", "type": "tag", "dataType": "string" }],
+              "expression": "A",
+              "stepInterval": 60,
+              "legend": "{{gen_ai.request.model}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tokens-out",
+      "title": "Output tokens / min",
+      "panelTypes": "graph",
+      "yAxisUnit": "short",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "queryName": "A",
+              "dataSource": "traces",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": { "key": "gen_ai.usage.output_tokens", "type": "tag", "dataType": "int64" },
+              "filters": {
+                "op": "AND",
+                "items": [
+                  { "key": { "key": "serviceName", "type": "tag", "dataType": "string" }, "op": "=", "value": "{{.service}}" }
+                ]
+              },
+              "groupBy": [{ "key": "gen_ai.request.model", "type": "tag", "dataType": "string" }],
+              "expression": "A",
+              "stepInterval": 60,
+              "legend": "{{gen_ai.request.model}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cost-by-model",
+      "title": "Total cost (USD) by model",
+      "description": "Sum of gen_ai.usage.cost_usd over the dashboard window.",
+      "panelTypes": "table",
+      "yAxisUnit": "none",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "queryName": "A",
+              "dataSource": "traces",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": { "key": "gen_ai.usage.cost_usd", "type": "tag", "dataType": "float64" },
+              "filters": {
+                "op": "AND",
+                "items": [
+                  { "key": { "key": "serviceName", "type": "tag", "dataType": "string" }, "op": "=", "value": "{{.service}}" }
+                ]
+              },
+              "groupBy": [{ "key": "gen_ai.request.model", "type": "tag", "dataType": "string" }],
+              "expression": "A",
+              "reduceTo": "sum",
+              "legend": "{{gen_ai.request.model}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tool-rate",
+      "title": "Tool calls / min by name",
+      "panelTypes": "graph",
+      "yAxisUnit": "short",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "queryName": "A",
+              "dataSource": "traces",
+              "aggregateOperator": "rate",
+              "aggregateAttribute": { "key": "name", "type": "tag", "dataType": "string" },
+              "filters": {
+                "op": "AND",
+                "items": [
+                  { "key": { "key": "serviceName", "type": "tag", "dataType": "string" }, "op": "=", "value": "{{.service}}" },
+                  { "key": { "key": "name", "type": "tag", "dataType": "string" }, "op": "contains", "value": "tool." }
+                ]
+              },
+              "groupBy": [{ "key": "gen_ai.tool.name", "type": "tag", "dataType": "string" }],
+              "expression": "A",
+              "stepInterval": 60,
+              "legend": "{{gen_ai.tool.name}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "recent-turns",
+      "title": "Recent agent turns",
+      "description": "Most recent pi.agent_turn root spans. Click a row to open the full trace.",
+      "panelTypes": "list",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "queryName": "A",
+              "dataSource": "traces",
+              "aggregateOperator": "noop",
+              "aggregateAttribute": { "key": "", "type": "", "dataType": "" },
+              "filters": {
+                "op": "AND",
+                "items": [
+                  { "key": { "key": "serviceName", "type": "tag", "dataType": "string" }, "op": "=", "value": "{{.service}}" },
+                  { "key": { "key": "name", "type": "tag", "dataType": "string" }, "op": "=", "value": "pi.agent_turn" }
+                ]
+              },
+              "groupBy": [],
+              "orderBy": [{ "columnName": "timestamp", "order": "desc" }],
+              "limit": 50,
+              "expression": "A"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
