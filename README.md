@@ -53,8 +53,7 @@ docker run --rm -p 16686:16686 -p 4318:4318 \
 docker run --rm -p 6006:6006 -p 4318:4318 arizephoenix/phoenix:latest
 ```
 
-Hosted: set `OTEL_EXPORTER_OTLP_ENDPOINT` + `OTEL_EXPORTER_OTLP_HEADERS`
-(Honeycomb, Grafana Cloud, etc.).
+Hosted: set `OTEL_EXPORTER_OTLP_ENDPOINT` + `OTEL_EXPORTER_OTLP_HEADERS`.
 
 ## Commands
 
